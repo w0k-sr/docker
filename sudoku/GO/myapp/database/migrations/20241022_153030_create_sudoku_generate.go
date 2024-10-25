@@ -5,20 +5,20 @@ import (
 )
 
 // DO NOT MODIFY
-type CreateSudokuGenerate_20240917_153030 struct {
+type CreateSudokuGenerate_20241022_153030 struct {
 	migration.Migration
 }
 
 // DO NOT MODIFY
 func init() {
-	m := &CreateSudokuGenerate_20240917_153030{}
-	m.Created = "20240917_153030"
+	m := &CreateSudokuGenerate_20241022_153030{}
+	m.Created = "20241022_153030"
 
-	migration.Register("CreateSudokuGenerate_20240917_153030", m)
+	migration.Register("CreateSudokuGenerate_20241022_153030", m)
 }
 
 // Run the migrations
-func (m *CreateSudokuGenerate_20240917_153030) Up() {
+func (m *CreateSudokuGenerate_20241022_153030) Up() {
 	// use m.SQL("CREATE TABLE ...") to make schema update
 	m.SQL(`CREATE TABLE sudoku_generate(
 		id SERIAL NOT NULL,
@@ -32,7 +32,7 @@ func (m *CreateSudokuGenerate_20240917_153030) Up() {
 }
 
 // Reverse the migrations
-func (m *CreateSudokuGenerate_20240917_153030) Down() {
+func (m *CreateSudokuGenerate_20241022_153030) Down() {
 	// use m.SQL("DROP TABLE ...") to reverse schema update
 
 }
