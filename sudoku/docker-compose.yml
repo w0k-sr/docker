@@ -1,0 +1,28 @@
+services:
+  db:
+    build:
+      context: ./PSQL
+    environment:
+      POSTGRES_DB: go_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    container_name: pg_db
+    ports:
+      - "5433:5432"
+    tty: true
+    volumes:
+      - ./PSQL/pg_data:/var/lib/postgresql/data
+      - ./PSQL/pg_init:/docker-entrypoint-initdb.d
+  app:
+    build:
+      context: ./Go
+    volumes:
+      - "./Go:/go/src/app"
+    container_name: my_app
+    ports:
+      - "8888:8888"
+    tty: true
+    environment:
+      - SQL_CON=postgres://postgres:password@pg_db:5432/go_db?sslmode=disable
+    depends_on:
+      - db
