@@ -1,7 +1,6 @@
 package common
 
 import (
-	// "fmt"
 	"strconv"
 	"encoding/json"
 	"strings"
@@ -26,12 +25,7 @@ func ParsePostgresArray(input string) ([][]int, error) {
 	}
 	return result, nil
 }
-
-// func strToInt(s string) (int, error) {
-    
-   
-// 	return strconv.Atoi(s)
-// 	}
+// 配列→文字列
 func ArrayToJson(arr [][]int) (string, error) {
 	data, err := json.Marshal(arr)
 	if err != nil {
@@ -39,7 +33,7 @@ func ArrayToJson(arr [][]int) (string, error) {
 	}
 	return string(data), nil
 }
-
+// 文字列→配列(int型)
 func JsonToArray(j string) ([][]int, error) {
 	var arr [][]int
 	err := json.Unmarshal([]byte(j), &arr)

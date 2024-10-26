@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"time"
 	"math/rand"
+	"math"
 	"myapp/models"
 	"myapp/common"
-	// "github.com/astaxie/beego"
 	beego "github.com/beego/beego/v2/server/web"
 )
 
@@ -17,14 +17,17 @@ type SudokuController struct {
 
 // 数独一覧表示
 func (c *SudokuController) List() {
+	data, err := models.GetSudokuGenerateWithDetails()
 	message := c.GetSession("message")
+	if err != nil {
+		fmt.Println("Error:", err)
+		c.Data["Message"] = "エラーが発生しました。管理者にお問い合わせください。"
+	}
 	if message != nil {
 		c.Data["Message"] = message
 		c.DelSession("message")
 	}
-	data, _ := models.GetSudokuGenerateWithDetails()
 	c.Data["SudokuGenerates"] = data
-	// fmt.Println(data)
 	c.TplName = "sudoku/list.tpl"
 }
 
@@ -32,34 +35,31 @@ func (c *SudokuController) List() {
 func (c *SudokuController) Create() {
 	var s models.SudokuGenerate
 	var p models.Progress
+	// 自動でレベルを生成
 	rand.Seed(time.Now().UnixNano())
 	s.Level = rand.Intn(3) + 1
-	data, _ := models.GetLevelById(s.Level)
 	var cs common.Sudoku
+	// 9×9の数字の配列生成
 	cs= cs.AddSudoku()
-	fmt.Println(data)
-	// 配列からスライスに変換
 	slice := cs.ToSlice()
 	s.SudokuZeroAbsence, _  = common.ArrayToJson(slice)
-	fmt.Println(s.SudokuZeroPresence)
+	// 9×9の数字の配列からレベルごとの数だけ0へ返還
+	data, _ := models.GetLevelById(s.Level)
 	cs.RemoveDigits(data.ZeroNum)
 	slice = cs.ToSlice()
-	// var blanksudoku string
 	blanksudoku, _ := common.ArrayToJson(slice)
 	s.SudokuZeroPresence = blanksudoku
 	p.SudokuSolve = blanksudoku
-	id, _ := models.AddSudokuGenerate(&s)
+	id, err := models.AddSudokuGenerate(&s)
 	p.SudokuId = int(id)
 	p.ProgressRate = 0
-	models.AddProgress(&p)
-	// fmt.Println("挿入されたID:", s.ID)
+	_, err = models.AddProgress(&p)
+	if err != nil {
+		fmt.Println("Error:", err)
+		c.SetSession("message", "エラーが発生しました。管理者にお問い合わせください。")
+	}
 	c.SetSession("message", "作成しました")
 	c.Redirect("/sudoku/list", 302)
-}
-
-// @router / [post]
-func (c *SudokuController) Post() {
-
 }
 
 // 数独詳細
@@ -80,15 +80,98 @@ func (c *SudokuController) Get() {
 			c.Redirect("/sudoku/list", 302)
 	}
 
-	// データが存在する場合の処理
 	preArray, _ := common.JsonToArray(data.SudokuZeroPresence)
-	// abArray, _ := common.ParsePostgresArray(data.SudokuZeroAbsence)
+	abArray, _ := common.JsonToArray(data.SudokuZeroAbsence)
 	solveArray, _ := common.JsonToArray(data.SudokuSolve)
+	// 解答チェック
+	flagArray, _, comment := check(abArray, solveArray, data)
 	c.Data["Sudoku"] = data
 	c.Data["preArray"] = preArray
-	// c.Data["abArray"] = abArray
 	c.Data["solveArray"] = solveArray
-	// fmt.Println(solveArray)
+	c.Data["flagArray"] = flagArray
+	c.Data["comment"] = comment
 	c.TplName = "sudoku/detail.tpl"
 }
 
+// 数独の入力値を更新
+func (c *SudokuController) Update() {
+	// 画面から受け取ったjsonの値
+	idNo, _ := c.GetInt("id")
+	colNo, _ := c.GetInt("col")
+	rowNo, _ := c.GetInt("row")
+	numNo, _ := c.GetInt("num")
+	data, _ := models.GetSudokuGenerateById(idNo)
+	abArray, _ := common.JsonToArray(data.SudokuZeroAbsence)
+	solveArray, _ := common.JsonToArray(data.SudokuSolve)
+	flag := false
+	if numNo != abArray[rowNo][colNo] && numNo != 0 {
+		flag = true
+	}
+	solveArray[rowNo][colNo] = numNo
+	zeroCount := 0
+	for _, array := range solveArray {
+		for _, num := range array {
+			if num == 0 {
+				zeroCount++
+			}
+		}
+	}
+	// 解答チェック
+	_, count, comment := check(abArray, solveArray, data)
+	result := zeroCount + count
+	p, _ := models.GetProgressById(idNo)
+	solveStr, _ := common.ArrayToJson(solveArray)
+	p.SudokuSolve = solveStr
+	p.ProgressRate = int(math.Ceil((float64(data.ZeroNum - result) / float64(data.ZeroNum)) * 100))
+	models.UpdateProgressById(p)
+	// JSONデータ
+	response := map[string]interface{}{
+		"status": "success",
+		"message": "Update successful",
+		"data": map[string]interface{}{
+			"flag": flag,
+			"comment": comment,
+		},
+	}
+
+	// JSONレスポンスを返す
+	c.Data["json"] = response
+	c.ServeJSON()
+	
+	// 以降の処理を停止して画面遷移を防止
+	c.StopRun()
+}
+
+// 解答チェック
+func check(abArray [][]int, solveArray [][]int, v *models.SudokuGenerateWithDetails) ([][]bool, int, int) {
+	var flagArray [][]bool
+	var commentFlg bool
+	count := 0
+	// 正解 false 不正解 true
+	for  j, array := range abArray {
+		var f []bool
+		for k, num := range array {
+			flag := false
+			if solveArray[j][k] != num && solveArray[j][k] != 0 {
+				flag = true
+				commentFlg = true
+				// 不正解の数を数える
+				count++
+			}
+			f = append(f, flag)
+		}
+		flagArray = append(flagArray, f)
+	}
+  // 詳細画面の画像とコメント判定
+	comment := 1
+	if commentFlg {
+		comment = 2
+	} else {
+		if v.ProgressRate > 60 {
+			comment = 3
+		} else if v.ProgressRate == 100 {
+			comment = 4
+		}
+	}
+	return flagArray, count, comment
+}

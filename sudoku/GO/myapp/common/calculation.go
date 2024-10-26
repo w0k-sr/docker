@@ -8,9 +8,6 @@ const N = 9
 type Sudoku [N][N]int
 
 func (s *Sudoku) AddSudoku()(Sudoku) {
-// 	// 数独
-	// var sudoku Sudoku
-// 	// ランダム
 	if s.assignNum() {
 		return *s
 	}
@@ -84,15 +81,12 @@ func (s *Sudoku) RemoveDigits(k int) {
 	}
 }
 
-// [N][N]int を [][]int に変換する関数
+// [N][N]int→[][]int
 func (sudoku Sudoku) ToSlice() [][]int {
-	// [][]intの初期化
 	slice := make([][]int, N)
 	for i := range slice {
 		slice[i] = make([]int, N)
 	}
-
-	// [N][N]int の内容を [][]int にコピー
 	for i := 0; i < N; i++ {
 		for j := 0; j < N; j++ {
 			slice[i][j] = sudoku[i][j]

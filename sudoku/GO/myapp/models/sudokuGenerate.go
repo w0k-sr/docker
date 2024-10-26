@@ -2,7 +2,6 @@ package models
 
 import (
 	"fmt"
-	// "encoding/json"
 	"github.com/beego/beego/v2/client/orm"
 )
 
@@ -70,6 +69,7 @@ func GetSudokuGenerateById(id int) (v *SudokuGenerateWithDetails, err error) {
 	s.sudoku_zero_presence,
 	s.sudoku_zero_absence,
 	l.zero_num,
+	p.progress_id,
 	p.progress_rate,
 	p.sudoku_solve
 	FROM sudoku_generate s 
