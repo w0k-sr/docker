@@ -9,19 +9,30 @@ import (
 )
 
 func main() {
+	// コマンドライン引数を定義
+	coinID := flag.String("coin", "ripple", "取得する仮想通貨のID（例：bitcoin, ripple, ethereum）")
+	startStr := flag.String("start", "2025-05-25", "開始日（例：2025-05-25）")
+	endStr := flag.String("end", "2025-06-05", "終了日（例：2025-06-05）")
+
+	// 引数をパース
+	flag.Parse()
+
+	// 日付文字列を time.Time に変換
+	const layout = "2006-01-02"
+	start, err := time.Parse(layout, *startStr)
+	if err != nil {
+		panic(fmt.Sprintf("開始日が無効です: %v", err))
+	}
+	end, err := time.Parse(layout, *endStr)
+	if err != nil {
+		panic(fmt.Sprintf("終了日が無効です: %v", err))
+	}
 	client := &controllers.CoinGeckoClient{
 		BaseURL: "https://api.coingecko.com/api/v3",
 	}
-	// 仮想通貨名：
-	// btc:
-	// xrp:ripple
-	coinID := "ripple"
+
 	// CSVファイル作成
-	start := time.Date(2025, 5, 25, 0, 0, 0, 0, time.UTC)
-	today := time.Date(2025, 6, 5, 0, 0, 0, 0, time.UTC)
-	startFormatted := start.Format("20060102")
-	todayFormatted := today.Format("20060102")
-	file, err := os.Create(fmt.Sprintf("prices_%s_F%s_T%s.csv", coinID, startFormatted, todayFormatted))
+	file, err := os.Create(fmt.Sprintf("prices_%s_F%s_T%s.csv", *coinID, *startStr, *endStr))
 	if err != nil {
 		panic(err)
 	}
