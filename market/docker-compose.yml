@@ -1,0 +1,10 @@
+services:
+  app:
+    build:
+      context: ./Go
+    volumes:
+      - "./Go:/go/src/app"
+    container_name: market_app
+    ports:
+      - "1111:1111"
+    tty: true
