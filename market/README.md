@@ -38,11 +38,13 @@ docker exec -it market_app bash
 ```bash
 market/
 ├ GO
-|  ├ myapp/
-|  |  ├ main.go
-|  |  ├ controlles/
-|  |    ├ CoinGeckoClient.go
-|  ├ Dockerfile          
+|  ├ main.go
+|  ├ controlles/
+|  |  ├ CoinGeckoClient.go
+|  ├ output
+|  |  ├ prices_<仮想通貨>_Fyyyymmdd_Tyyymmdd.csv
+|  ├ Dockerfile
+├ docker-compose.yml
 └── README.md
 ```
 ## 🧪 出力例
