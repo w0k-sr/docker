@@ -35,16 +35,17 @@ docker exec -it market_app bash
 /go/src/app> go run main.go -coin=<仮想通貨名> -start=<取得開始日> -end=<取得終了日>
 ```
 ## 📂 ディレクトリ構成
-```bash
+
+```
 market/
-├ GO
-|  ├ main.go
-|  ├ controlles/
-|  |  ├ CoinGeckoClient.go
-|  ├ output
-|  |  ├ prices_<仮想通貨>_Fyyyymmdd_Tyyymmdd.csv
-|  ├ Dockerfile
-├ docker-compose.yml
+├── GO
+|   ├── main.go
+|   ├── controlles/
+|   |   └── CoinGeckoClient.go
+|   ├── output/
+|   |   └── prices_<仮想通貨>_Fyyyymmdd_Tyyymmdd.csv
+├── Dockerfile
+├── docker-compose.yml
 └── README.md
 ```
 ## 🧪 出力例
