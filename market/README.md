@@ -26,9 +26,32 @@ git clone https://github.com/w0k-sr/docker.git
 cd docker/market
 
 # Dockerビルド
-docker build -t market_app .
+docker-compose up -d --build
 
 # 実行（CSVファイルに出力）
 # 仮想通貨名:bitcoin,ripple
 # 取得開始日、取得終了日：yyyy-mm-dd
-docker run --rm -v $(pwd)/output:/app/output market_app -coin=<仮想通貨名> -start=<取得開始日> -end=<取得終了日>
+docker exec -it market_app bash
+/go/src/app> cd myapp
+/go/src/app/myapp> docker run --rm -v $(pwd)/output:/app/output market_app -coin=<仮想通貨名> -start=<取得開始日> -end=<取得終了日>
+```
+## 📂 ディレクトリ構成
+```bash
+market/
+├ GO
+|  ├ myapp/
+|  |  ├ main.go
+|  |  ├ controlles/
+|  |    ├ CoinGeckoClient.go
+|  ├ Dockerfile          
+└── README.md
+```
+## 🧪 出力例
+
+**出力ファイル名：`prices_ripple_F20250525_T20250605.csv`**
+
+```csv
+date,usd_price,jpy_price
+2025-05-25,2.08,327.53
+2025-05-26,2.32,364.53
+...
