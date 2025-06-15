@@ -32,8 +32,7 @@ docker-compose up -d --build
 # 仮想通貨名:bitcoin,ripple
 # 取得開始日、取得終了日：yyyy-mm-dd
 docker exec -it market_app bash
-/go/src/app> cd myapp
-/go/src/app/myapp> docker run --rm -v $(pwd)/output:/app/output market_app -coin=<仮想通貨名> -start=<取得開始日> -end=<取得終了日>
+/go/src/app> go run main.go -coin=<仮想通貨名> -start=<取得開始日> -end=<取得終了日>
 ```
 ## 📂 ディレクトリ構成
 ```bash

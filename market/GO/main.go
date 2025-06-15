@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"encoding/csv" 
 	"fmt"
 	"myapp/controllers"
@@ -9,6 +10,7 @@ import (
 )
 
 func main() {
+	fmt.Println("Start")
 	// コマンドライン引数を定義
 	coinID := flag.String("coin", "ripple", "取得する仮想通貨のID（例：bitcoin, ripple, ethereum）")
 	startStr := flag.String("start", "2025-05-25", "開始日（例：2025-05-25）")
@@ -30,9 +32,12 @@ func main() {
 	client := &controllers.CoinGeckoClient{
 		BaseURL: "https://api.coingecko.com/api/v3",
 	}
-
+	err = os.MkdirAll("/output", os.ModePerm)
+	if err != nil {
+		fmt.Errorf("出力ディレクトリの作成に失敗しました: %v", err)
+	}
 	// CSVファイル作成
-	file, err := os.Create(fmt.Sprintf("prices_%s_F%s_T%s.csv", *coinID, *startStr, *endStr))
+	file, err := os.Create(fmt.Sprintf("output/prices_%s_F%s_T%s.csv", *coinID, *startStr, *endStr))
 	if err != nil {
 		panic(err)
 	}
@@ -43,9 +48,9 @@ func main() {
 
 	// ヘッダー
 	writer.Write([]string{"date", "usd_price", "jpy_price"})
-	// usdToJpy, err := client.GetUsdToJpyRate()
-	for d := start; d.Before(today); d = d.AddDate(0, 0, 1) {
-		usd, err := client.GetHistoricalUSDPrice(coinID, d)
+
+	for d := start; d.Before(end); d = d.AddDate(0, 0, 1) {
+		usd, err := client.GetHistoricalUSDPrice(*coinID, d)
 		if err != nil {
 			fmt.Printf("%s: エラー - %v\n", d.Format("2006-01-02"), err)
 			continue
